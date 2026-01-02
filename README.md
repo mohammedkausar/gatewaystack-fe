@@ -33,9 +33,3 @@ To run locally
 To build
 
 - npm run build
-
-Api requests are proxied to
-
-```
-/ap/*
-```
