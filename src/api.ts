@@ -1,32 +1,49 @@
 import { logger } from "./logger";
 
-export async function triggerOrderFlow(orderId: number): Promise<void> {
-  const endpoint = `/api/orders/${orderId}`;
-
-  logger.info("API request initiated", {
+async function callApi(
+  method: "GET" | "POST",
+  endpoint: string,
+  meta: Record<string, unknown>
+): Promise<void> {
+  logger.info("API request started", {
+    method,
     endpoint,
-    orderId,
+    ...meta,
   });
 
   try {
-    const res = await fetch(endpoint);
+    const res = await fetch(endpoint, { method });
 
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
 
-    logger.info("API request completed", {
+    logger.info("API request successful", {
+      method,
       endpoint,
-      orderId,
       status: res.status,
+      ...meta,
     });
   } catch (err) {
     logger.error("API request failed", {
+      method,
       endpoint,
-      orderId,
       error: (err as Error).message,
+      ...meta,
     });
 
     throw err;
   }
+}
+
+export async function triggerOrderAndPayment(orderId: number): Promise<void> {
+  await callApi("GET", `/api/orders/${orderId}`, {
+    orderId,
+    service: "orders-service",
+  });
+
+  await callApi("POST", `/api/payments/${orderId}`, {
+    orderId,
+    service: "payments-service",
+  });
 }

@@ -1,22 +1,21 @@
-import type { JSX } from "react";
-import { triggerOrderFlow } from "./api";
+import { triggerOrderAndPayment } from "./api";
 import { logger } from "./logger";
 
-function App(): JSX.Element {
+function App() {
   const startFlow = async (): Promise<void> => {
-    logger.info("User triggered order flow");
+    logger.info("User triggered order + payment flow");
 
     try {
-      await triggerOrderFlow(1);
+      await triggerOrderAndPayment(1);
     } catch {
-      // failure already logged
+      // failures already logged
     }
   };
 
   return (
     <div style={{ padding: 24 }}>
       <h2>GatewayStack</h2>
-      <button onClick={startFlow}>Trigger Order Flow</button>
+      <button onClick={startFlow}>Trigger Order + Payment Flow</button>
     </div>
   );
 }
