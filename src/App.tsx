@@ -1,28 +1,43 @@
+import { useState } from "react";
 import { triggerOrderAndPayment } from "./api";
 import { logger } from "./logger";
 
-function App() {
-  const startFlow = async (): Promise<void> => {
+export default function App() {
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const startFlow = async () => {
+    setLoading(true);
+    setError(null);
+    setResponse(null);
+
     logger.info("User triggered order + payment flow");
 
     try {
-      await triggerOrderAndPayment(1);
-    } catch {
-      // failures already logged
+      const res = await triggerOrderAndPayment(1);
+      setResponse(res);
+    } catch (err: any) {
+      setError(err?.message || "Request failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h2 style={styles.title}>GatewayStack</h2>
-        <p style={styles.subtitle}>
-          Trigger order and payment flow across services
-        </p>
+        <h2>GatewayStack</h2>
 
-        <button style={styles.button} onClick={startFlow}>
-          Trigger Flow
+        <button onClick={startFlow} disabled={loading} style={styles.button}>
+          {loading ? "Processing..." : "Trigger Flow"}
         </button>
+
+        {response && (
+          <pre style={styles.success}>{JSON.stringify(response, null, 2)}</pre>
+        )}
+
+        {error && <div style={styles.error}>{error}</div>}
       </div>
     </div>
   );
@@ -34,40 +49,36 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(135deg, #0f172a, #020617)",
+    background: "#020617",
     color: "#e5e7eb",
-    fontFamily: "system-ui, sans-serif",
   },
   card: {
-    background: "#020617",
-    border: "1px solid #1e293b",
-    borderRadius: 12,
+    width: 420,
     padding: 32,
-    width: 360,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
-    textAlign: "center",
-  },
-  title: {
-    marginBottom: 8,
-    fontSize: 24,
-    fontWeight: 600,
-  },
-  subtitle: {
-    marginBottom: 24,
-    fontSize: 14,
-    color: "#94a3b8",
+    borderRadius: 12,
+    border: "1px solid #1e293b",
   },
   button: {
     width: "100%",
-    padding: "12px 16px",
-    fontSize: 15,
+    padding: 12,
+    marginTop: 12,
     fontWeight: 600,
     borderRadius: 8,
     border: "none",
-    cursor: "pointer",
     background: "#2563eb",
     color: "#fff",
   },
+  success: {
+    marginTop: 16,
+    padding: 12,
+    border: "1px solid #14532d",
+    color: "#4ade80",
+    fontSize: 13,
+  },
+  error: {
+    marginTop: 16,
+    padding: 12,
+    background: "#450a0a",
+    color: "#fca5a5",
+  },
 };
-
-export default App;
